@@ -1,0 +1,1112 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6",
+    "name": "Role Policy API",
+    "description": "Centralized Role/Policy API for authorization management",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticate user and get JWT token"
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints"
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Get all users"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "User ID"
+                }
+              ]
+            },
+            "description": "Get user by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            },
+            "description": "Create a new user"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "User ID"
+                }
+              ]
+            },
+            "description": "Update user information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "User ID"
+                }
+              ]
+            },
+            "description": "Delete a user"
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Roles to User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roleIds\": [\"role-uuid-1\", \"role-uuid-2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/:id/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", ":id", "roles"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "User ID"
+                }
+              ]
+            },
+            "description": "Assign roles to a user"
+          },
+          "response": []
+        }
+      ],
+      "description": "User management endpoints"
+    },
+    {
+      "name": "Roles",
+      "item": [
+        {
+          "name": "Get All Roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles"]
+            },
+            "description": "Get all roles"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Role by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Role ID"
+                }
+              ]
+            },
+            "description": "Get role by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"editor\",\n  \"description\": \"Editor role with content management permissions\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roles",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles"]
+            },
+            "description": "Create a new role"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Role",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated role description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Role ID"
+                }
+              ]
+            },
+            "description": "Update role information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Role",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Role ID"
+                }
+              ]
+            },
+            "description": "Delete a role"
+          },
+          "response": []
+        },
+        {
+          "name": "Assign Permissions to Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permissionIds\": [\"permission-uuid-1\", \"permission-uuid-2\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/roles/:id/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["roles", ":id", "permissions"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Role ID"
+                }
+              ]
+            },
+            "description": "Assign permissions to a role"
+          },
+          "response": []
+        }
+      ],
+      "description": "Role management endpoints"
+    },
+    {
+      "name": "Permissions",
+      "item": [
+        {
+          "name": "Get All Permissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["permissions"]
+            },
+            "description": "Get all permissions"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Permission by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/permissions/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["permissions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Permission ID"
+                }
+              ]
+            },
+            "description": "Get permission by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Permission",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"create:article\",\n  \"description\": \"Permission to create articles\",\n  \"scope\": \"all\",\n  \"resource\": \"article\",\n  \"action\": \"create\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/permissions",
+              "host": ["{{baseUrl}}"],
+              "path": ["permissions"]
+            },
+            "description": "Create a new permission"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Permission",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated permission description\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/permissions/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["permissions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Permission ID"
+                }
+              ]
+            },
+            "description": "Update permission information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Permission",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/permissions/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["permissions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Permission ID"
+                }
+              ]
+            },
+            "description": "Delete a permission"
+          },
+          "response": []
+        }
+      ],
+      "description": "Permission management endpoints"
+    },
+    {
+      "name": "Policies",
+      "item": [
+        {
+          "name": "Get All Policies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "description": "Get all policies"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Policy by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/policies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Policy ID"
+                }
+              ]
+            },
+            "description": "Get policy by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Policies by Permission ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/policies/permission/:permissionId",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", "permission", ":permissionId"],
+              "variable": [
+                {
+                  "key": "permissionId",
+                  "value": "",
+                  "description": "Permission ID"
+                }
+              ]
+            },
+            "description": "Get policies by permission ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Policy",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"article_ownership\",\n  \"description\": \"Policy for article ownership\",\n  \"conditions\": {\n    \"user.id\": \"article.authorId\"\n  },\n  \"permissionId\": \"permission-uuid\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/policies",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies"]
+            },
+            "description": "Create a new policy"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Policy",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated policy description\",\n  \"conditions\": {\n    \"user.id\": \"article.authorId\",\n    \"article.status\": \"published\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/policies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Policy ID"
+                }
+              ]
+            },
+            "description": "Update policy information"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Policy",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/policies/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["policies", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Policy ID"
+                }
+              ]
+            },
+            "description": "Delete a policy"
+          },
+          "response": []
+        }
+      ],
+      "description": "Policy management endpoints"
+    },
+    {
+      "name": "Channels",
+      "item": [
+        {
+          "name": "Get All Channels",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/channels",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "channels"]
+            },
+            "description": "Get all channels"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/channels/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "channels", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Channel ID"
+                }
+              ]
+            },
+            "description": "Get channel by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel Descendants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/channels/:id/descendants",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "channels", ":id", "descendants"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Channel ID"
+                }
+              ]
+            },
+            "description": "Get channel descendants"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Marketing\",\n  \"description\": \"Marketing channel\",\n  \"slug\": \"marketing\",\n  \"parentId\": null,\n  \"metadata\": {\n    \"theme\": \"dark\",\n    \"language\": \"en\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/channels",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "channels"]
+            },
+            "description": "Create a new channel"
+          },
+          "response": []
+        },
+        {
+          "name": "Assign User to Channel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"user-uuid\",\n  \"roleId\": \"role-uuid\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/channels/:id/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "channels", ":id", "users"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Channel ID"
+                }
+              ]
+            },
+            "description": "Assign user to channel with role"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Channel Settings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key\": \"theme\",\n  \"value\": \"dark\",\n  \"isInherited\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/channels/:id/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "channels", ":id", "settings"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Channel ID"
+                }
+              ]
+            },
+            "description": "Create channel settings"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Channel Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/channels/:id/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "channels", ":id", "settings"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Channel ID"
+                }
+              ]
+            },
+            "description": "Get channel settings"
+          },
+          "response": []
+        }
+      ],
+      "description": "Channel management endpoints"
+    },
+    {
+      "name": "Collections",
+      "item": [
+        {
+          "name": "Get All Collections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/collections",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "collections"]
+            },
+            "description": "Get all collections"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Collection by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/collections/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "collections", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Collection ID"
+                }
+              ]
+            },
+            "description": "Get collection by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Collection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Articles\",\n  \"slug\": \"articles\",\n  \"description\": \"Collection for blog articles\",\n  \"fields\": [\n    {\n      \"name\": \"title\",\n      \"type\": \"string\",\n      \"required\": true\n    },\n    {\n      \"name\": \"content\",\n      \"type\": \"text\",\n      \"required\": true\n    },\n    {\n      \"name\": \"publishDate\",\n      \"type\": \"date\",\n      \"required\": false\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/collections",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "collections"]
+            },
+            "description": "Create a new collection"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Collection",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/collections/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "collections", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Collection ID"
+                }
+              ]
+            },
+            "description": "Delete a collection"
+          },
+          "response": []
+        }
+      ],
+      "description": "Collection management endpoints"
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Create Event Definition",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"content.created\",\n  \"description\": \"Triggered when new content is created\",\n  \"schema\": {\n    \"type\": \"object\",\n    \"properties\": {\n      \"contentId\": {\n        \"type\": \"string\"\n      },\n      \"contentType\": {\n        \"type\": \"string\"\n      },\n      \"createdById\": {\n        \"type\": \"string\"\n      }\n    },\n    \"required\": [\"contentId\", \"contentType\"]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/events/definitions",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "events", "definitions"]
+            },
+            "description": "Create a new event definition"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event Definition",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/events/definitions/:id",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "events", "definitions", ":id"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Event Definition ID"
+                }
+              ]
+            },
+            "description": "Get event definition by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Event Trigger",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"eventDefinitionId\": \"event-definition-uuid\",\n  \"payload\": {\n    \"contentId\": \"content-uuid\",\n    \"contentType\": \"article\",\n    \"createdById\": \"user-uuid\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/events/triggers",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "events", "triggers"]
+            },
+            "description": "Trigger an event"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Content Notification\",\n  \"url\": \"https://example.com/webhooks/content\",\n  \"eventDefinitionId\": \"event-definition-uuid\",\n  \"secret\": \"webhook-secret-key\",\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/events/webhooks",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "events", "webhooks"]
+            },
+            "description": "Create a new webhook"
+          },
+          "response": []
+        }
+      ],
+      "description": "Event management endpoints"
+    }
+  ]
+}
