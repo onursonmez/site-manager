@@ -2,7 +2,9 @@ import { Injectable, ConflictException, NotFoundException } from "@nestjs/common
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository, DataSource } from "typeorm";
 import { Collection } from "../entities/collection.entity";
+import { Field } from "../entities/field.entity";
 import { CreateCollectionDto } from "../dto/create-collection.dto";
+import { CreateFieldDto } from "../dto/create-field.dto";
 import { SchemaService } from "./schema.service";
 import { FieldFactory } from "../factories/field.factory";
 import { LoggingService } from "../../logging/logging.service";
@@ -103,18 +105,25 @@ export class CollectionService {
       await queryRunner.release();
     }
   }
-  async createRecord(collectionId: string, data: Record<string, any>): Promise<any> {
+
+  /**
+   * Creates a new record in the specified collection
+   * @param collectionId The ID of the collection
+   * @param data The data to insert
+   * @returns The created record
+   */
+  async createRecord(collectionId: string, data: Record<string, any>): Promise<Record<string, any>> {
     const collection = await this.findOne(collectionId);
 
     try {
-      // Execute an INSERT query on the collection's table
+      // Insert data into the collection's table
       const result = await this.dataSource.query(
         `INSERT INTO "${collection.tableName}" (${Object.keys(data)
           .map((key) => `"${key}"`)
-          .join(", ")}) 
+          .join(", ")})
          VALUES (${Object.keys(data)
-           .map((_, index) => `${index + 1}`)
-           .join(", ")}) 
+           .map((_, i) => `${i + 1}`)
+           .join(", ")})
          RETURNING *`,
         Object.values(data)
       );
@@ -125,11 +134,18 @@ export class CollectionService {
     }
   }
 
-  async updateRecords(collectionId: string, filter: Record<string, any>, data: Record<string, any>): Promise<any> {
+  /**
+   * Updates records in the specified collection based on a filter
+   * @param collectionId The ID of the collection
+   * @param filter The filter to select records to update
+   * @param data The data to update
+   * @returns The number of updated records
+   */
+  async updateRecords(collectionId: string, filter: Record<string, any>, data: Record<string, any>): Promise<number> {
     const collection = await this.findOne(collectionId);
 
     try {
-      // Build the SET clause for the UPDATE query
+      // Build the SET clause for the update
       const setClause = Object.entries(data)
         .map(([key, _], index) => `"${key}" = ${index + 1}`)
         .join(", ");
@@ -139,22 +155,28 @@ export class CollectionService {
         .map(([key, _], index) => `"${key}" = ${index + Object.keys(data).length + 1}`)
         .join(" AND ");
 
-      // Execute the UPDATE query
+      // Execute the update query
       const result = await this.dataSource.query(
-        `UPDATE "${collection.tableName}" 
-         SET ${setClause} 
-         WHERE ${whereConditions || "true"} 
+        `UPDATE "${collection.tableName}"
+         SET ${setClause}
+         WHERE ${whereConditions}
          RETURNING *`,
         [...Object.values(data), ...Object.values(filter)]
       );
 
-      return result;
+      return result.length;
     } catch (error) {
       throw error;
     }
   }
 
-  async deleteRecords(collectionId: string, filter: Record<string, any>): Promise<any> {
+  /**
+   * Deletes records from the specified collection based on a filter
+   * @param collectionId The ID of the collection
+   * @param filter The filter to select records to delete
+   * @returns The number of deleted records
+   */
+  async deleteRecords(collectionId: string, filter: Record<string, any>): Promise<number> {
     const collection = await this.findOne(collectionId);
 
     try {
@@ -163,17 +185,224 @@ export class CollectionService {
         .map(([key, _], index) => `"${key}" = ${index + 1}`)
         .join(" AND ");
 
-      // Execute the DELETE query
+      // Execute the delete query
       const result = await this.dataSource.query(
-        `DELETE FROM "${collection.tableName}" 
-         WHERE ${whereConditions || "true"} 
+        `DELETE FROM "${collection.tableName}"
+         WHERE ${whereConditions}
          RETURNING *`,
         Object.values(filter)
       );
 
-      return result;
+      return result.length;
     } catch (error) {
       throw error;
+    }
+  }
+
+  /**
+   * Adds a new field to an existing collection
+   * @param collectionId The ID of the collection to add the field to
+   * @param createFieldDto The field definition to add
+   * @returns The created field
+   */
+  async addField(collectionId: string, createFieldDto: CreateFieldDto): Promise<Field> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Find the collection
+      const collection = await this.findOne(collectionId);
+
+      // Check if field with the same name already exists
+      const existingField = collection.fields.find((field) => field.name === createFieldDto.name);
+      if (existingField) {
+        throw new ConflictException(`Field with name "${createFieldDto.name}" already exists in collection "${collection.name}"`);
+      }
+
+      // Add the field to the database table
+      await this.schemaService.addFieldToTable(collection.tableName, createFieldDto, queryRunner);
+
+      // Create the field entity
+      const field = this.fieldFactory.createField(createFieldDto, collection);
+      const savedField = await queryRunner.manager.save(field);
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+
+      // Log the operation
+      await this.loggingService.logRequest({
+        method: "POST",
+        url: `Collection/${collection.id}/fields`,
+        statusCode: 201,
+        body: { field: createFieldDto },
+      });
+
+      return savedField;
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await queryRunner.rollbackTransaction();
+
+      // Log the error
+      await this.loggingService.logRequest({
+        method: "POST",
+        url: `Collection/${collectionId}/fields`,
+        statusCode: 500,
+        body: { error: error.message },
+      });
+
+      throw error;
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Updates an existing field in a collection
+   * @param collectionId The ID of the collection
+   * @param fieldId The ID of the field to update
+   * @param updateFieldDto The updated field data
+   * @returns The updated field
+   */
+  async updateField(collectionId: string, fieldId: string, updateFieldDto: Partial<CreateFieldDto>): Promise<Field> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Find the collection
+      const collection = await this.findOne(collectionId);
+
+      // Find the field
+      const field = collection.fields.find((f) => f.id === fieldId);
+      if (!field) {
+        throw new NotFoundException(`Field with ID "${fieldId}" not found in collection "${collection.name}"`);
+      }
+
+      // Check if trying to update name and if the new name already exists
+      if (updateFieldDto.name && updateFieldDto.name !== field.name) {
+        const existingField = collection.fields.find((f) => f.name === updateFieldDto.name);
+        if (existingField) {
+          throw new ConflictException(`Field with name "${updateFieldDto.name}" already exists in collection "${collection.name}"`);
+        }
+
+        // Rename column in the database table
+        await queryRunner.query(`ALTER TABLE "${collection.tableName}" RENAME COLUMN "${field.name}" TO "${updateFieldDto.name}"`);
+      }
+
+      // Check if field type is changing
+      if (updateFieldDto.type && updateFieldDto.type !== field.type) {
+        // Get the new column type definition
+        const newColumnType = this.schemaService.getColumnTypeForFieldType(updateFieldDto.type, updateFieldDto.relatedCollectionId || field.relatedCollection?.id);
+
+        // Alter column type in the database table
+        await queryRunner.query(
+          `ALTER TABLE "${collection.tableName}" ALTER COLUMN "${field.name || updateFieldDto.name}" TYPE ${newColumnType} USING "${field.name || updateFieldDto.name}"::${newColumnType}`
+        );
+      }
+
+      // Update field entity
+      Object.assign(field, updateFieldDto);
+      const savedField = await queryRunner.manager.save(field);
+
+      // Handle uniqueness constraint changes
+      if (updateFieldDto.isUnique !== undefined && updateFieldDto.isUnique !== field.isUnique) {
+        const fieldName = field.name || updateFieldDto.name;
+        const indexName = `${collection.tableName}_${fieldName}_unique`;
+
+        if (updateFieldDto.isUnique) {
+          // Add unique constraint
+          await queryRunner.query(`CREATE UNIQUE INDEX "${indexName}" ON "${collection.tableName}" ("${fieldName}")`);
+        } else {
+          // Remove unique constraint
+          await queryRunner.query(`DROP INDEX IF EXISTS "${indexName}"`);
+        }
+      }
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+
+      // Log the operation
+      await this.loggingService.logRequest({
+        method: "PATCH",
+        url: `Collection/${collection.id}/fields/${fieldId}`,
+        statusCode: 200,
+        body: { field: updateFieldDto },
+      });
+
+      return savedField;
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await queryRunner.rollbackTransaction();
+
+      // Log the error
+      await this.loggingService.logRequest({
+        method: "PATCH",
+        url: `Collection/${collectionId}/fields/${fieldId}`,
+        statusCode: 500,
+        body: { error: error.message },
+      });
+
+      throw error;
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Removes a field from a collection
+   * @param collectionId The ID of the collection
+   * @param fieldId The ID of the field to remove
+   */
+  async removeField(collectionId: string, fieldId: string): Promise<void> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Find the collection
+      const collection = await this.findOne(collectionId);
+
+      // Find the field
+      const field = collection.fields.find((f) => f.id === fieldId);
+      if (!field) {
+        throw new NotFoundException(`Field with ID "${fieldId}" not found in collection "${collection.name}"`);
+      }
+
+      // Drop column from the database table
+      await queryRunner.query(`ALTER TABLE "${collection.tableName}" DROP COLUMN "${field.name}"`);
+
+      // Remove field entity
+      await queryRunner.manager.remove(field);
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+
+      // Log the operation
+      await this.loggingService.logRequest({
+        method: "DELETE",
+        url: `Collection/${collection.id}/fields/${fieldId}`,
+        statusCode: 200,
+        body: { fieldId },
+      });
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await queryRunner.rollbackTransaction();
+
+      // Log the error
+      await this.loggingService.logRequest({
+        method: "DELETE",
+        url: `Collection/${collectionId}/fields/${fieldId}`,
+        statusCode: 500,
+        body: { error: error.message },
+      });
+
+      throw error;
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
     }
   }
 }

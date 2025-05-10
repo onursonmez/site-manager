@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, Version } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Req, Version, Patch } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CollectionService } from "./services/collection.service";
 import { CreateCollectionDto } from "./dto/create-collection.dto";
+import { CreateFieldDto } from "./dto/create-field.dto";
 import { Request } from "express";
 
 @ApiTags("collections")
@@ -38,5 +39,23 @@ export class CollectionsController {
   @Version("1")
   remove(@Param("id") id: string) {
     return this.collectionService.remove(id);
+  }
+
+  @Post(":id/fields")
+  @Version("1")
+  addField(@Param("id") id: string, @Body() createFieldDto: CreateFieldDto) {
+    return this.collectionService.addField(id, createFieldDto);
+  }
+
+  @Patch(":id/fields/:fieldId")
+  @Version("1")
+  updateField(@Param("id") id: string, @Param("fieldId") fieldId: string, @Body() updateFieldDto: Partial<CreateFieldDto>) {
+    return this.collectionService.updateField(id, fieldId, updateFieldDto);
+  }
+
+  @Delete(":id/fields/:fieldId")
+  @Version("1")
+  removeField(@Param("id") id: string, @Param("fieldId") fieldId: string) {
+    return this.collectionService.removeField(id, fieldId);
   }
 }

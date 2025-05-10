@@ -49,7 +49,17 @@ export class SchemaService {
   }
 
   private getColumnDefinition(field: CreateFieldDto): string {
-    switch (field.type) {
+    return this.getColumnTypeForFieldType(field.type, field.relatedCollectionId);
+  }
+
+  /**
+   * Gets the SQL column type for a field type
+   * @param fieldType The field type
+   * @param relatedCollectionId Optional related collection ID for relation fields
+   * @returns The SQL column type
+   */
+  getColumnTypeForFieldType(fieldType: FieldType, relatedCollectionId?: string): string {
+    switch (fieldType) {
       case FieldType.TEXT:
       case FieldType.TEXTAREA:
       case FieldType.EMAIL:
@@ -75,7 +85,7 @@ export class SchemaService {
         return "text";
       case FieldType.RELATION_ONE_TO_ONE:
       case FieldType.RELATION_MANY_TO_ONE:
-        return field.relatedCollectionId ? `uuid REFERENCES "${this.generateTableName(field.relatedCollectionId)}"(id) ON DELETE SET NULL` : "uuid";
+        return relatedCollectionId ? `uuid REFERENCES "${this.generateTableName(relatedCollectionId)}"(id) ON DELETE SET NULL` : "uuid";
       default:
         return "text";
     }

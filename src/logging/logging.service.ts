@@ -11,9 +11,7 @@ export class LoggingService {
   ) {}
 
   async logRequest(logData: Partial<RequestLog>): Promise<RequestLog> {
-    console.log(logData);
     const log = this.requestLogRepository.create(logData);
-
     return this.requestLogRepository.save(log);
   }
 

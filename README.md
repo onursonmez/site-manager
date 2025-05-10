@@ -1,154 +1,57 @@
-# Role/Policy API
+Events Modülünün İşlevi
+src/events klasöründeki modül bir olay (event) yönetim sistemi sağlıyor. Bu modül, NestJS framework'ü kullanılarak geliştirilmiş ve aşağıdaki temel işlevleri yerine getiriyor:
 
-A centralized Role/Policy API built with NestJS and PostgreSQL for managing authentication and authorization across multiple applications.
+Temel İşlevler:
+Olay Tanımları (Event Definitions) Yönetimi:
 
-## Features
+Sistemde çeşitli olaylar tanımlanabilir (koleksiyon oluşturma, güncelleme, silme gibi)
+Her olay tanımı belirli koşullara bağlı olarak tetiklenebilir
+Olaylar aktif veya pasif durumda olabilir
+Olay Tetikleyicileri (Event Triggers):
 
-- Centralized user, role, and permission management
-- Support for both RBAC (Role-Based Access Control) and ABAC (Attribute-Based Access Control)
-- JWT-based authentication
-- Conditional permissions with scope constraints (e.g., "all" vs "own" resources)
-- JSON-based policy definitions stored in PostgreSQL
-- Authorization verification with filter generation
-- RESTful API with Swagger documentation
+Bir olay gerçekleştiğinde otomatik olarak başka koleksiyonlarda işlemler yapılabilir
+Tetikleyiciler create, update veya delete operasyonlarını gerçekleştirebilir
+Hedef koleksiyonlarda belirli filtreler ve verilerle işlemler yapılabilir
+Webhook Entegrasyonu:
 
-## Prerequisites
+Olaylar gerçekleştiğinde dış sistemlere HTTP webhook'ları aracılığıyla bildirim gönderilebilir
+Webhook'lar özel başlıklar ve veri yapıları ile yapılandırılabilir
+Olay Kuyruğu (Event Queue) Yönetimi:
 
-- Node.js (>= 16.x)
-- PostgreSQL (>= 13.x)
+Olaylar BullMQ kütüphanesi kullanılarak bir kuyruk sisteminde işlenir
+Redis veritabanı kuyruk yönetimi için kullanılır
+Başarısız olaylar için yeniden deneme mekanizması bulunur
+Olay Günlüğü (Event Log) Tutma:
 
-## Installation
+Tüm olaylar veritabanında kaydedilir
+Olayların durumu (beklemede, işleniyor, tamamlandı, başarısız, yeniden deneniyor) takip edilir
+Hata mesajları ve işlem zamanları kaydedilir
+Mimari Yapı:
+Entities (Varlıklar):
 
-1. Clone the repository
-2. Install dependencies:
+EventDefinition: Olay tanımlarını içerir
+EventLog: Olay günlüklerini tutar
+EventTrigger: Olay tetikleyicilerini tanımlar
+Webhook: Webhook yapılandırmalarını içerir
+Services (Servisler):
 
-```bash
-npm install
-```
+EventsService: Olay tanımları, günlükleri ve tetikleyicileri yönetir
+EventQueueService: Olay kuyruğunu ve işleme sürecini yönetir
+WebhookService: Webhook'ları oluşturur ve gönderir
+Controller:
 
-3. Create a PostgreSQL database
-4. Update the `.env` file with your database credentials
-5. Run migrations:
+EventsController: Olay tanımları, tetikleyicileri ve webhook'ları oluşturmak için API endpoint'leri sağlar
+Enums (Numaralandırmalar):
 
-```bash
-npm run migration:run
-```
+EventStatus: Olay durumlarını tanımlar (beklemede, işleniyor, tamamlandı, başarısız, yeniden deneniyor)
+EventType: Olay tiplerini tanımlar (koleksiyon oluşturma, güncelleme, silme, alan güncelleme)
+Kullanım Senaryoları:
+Otomatik İş Akışları: Bir koleksiyonda veri değiştiğinde, başka koleksiyonlarda otomatik olarak işlemler yapılabilir.
 
-## Running the Application
+Entegrasyon: Sistem içindeki olaylar dış sistemlere webhook'lar aracılığıyla bildirilebilir.
 
-```bash
-# Development mode
-npm run start:dev
+Denetim ve İzleme: Tüm olaylar günlüklenir, böylece sistem aktiviteleri izlenebilir ve sorunlar tespit edilebilir.
 
-# Production mode
-npm run build
-npm run start:prod
-```
+Koşullu Tetikleme: Olaylar belirli koşullar sağlandığında tetiklenebilir, bu da esnek iş akışları oluşturmayı sağlar.
 
-The API will be available at `http://localhost:3000`
-API documentation will be available at `http://localhost:3000/api`
-
-## API Endpoints
-
-### Authentication
-
-- `POST /auth/login` - User login
-
-### Users
-
-- `GET /users` - Get all users
-- `GET /users/:id` - Get user by ID
-- `POST /users` - Create user
-- `PATCH /users/:id` - Update user
-- `DELETE /users/:id` - Delete user
-- `POST /users/:id/roles` - Assign roles to user
-
-### Roles
-
-- `GET /roles` - Get all roles
-- `GET /roles/:id` - Get role by ID
-- `POST /roles` - Create role
-- `PATCH /roles/:id` - Update role
-- `DELETE /roles/:id` - Delete role
-- `POST /roles/:id/permissions` - Assign permissions to role
-
-### Permissions
-
-- `GET /permissions` - Get all permissions
-- `GET /permissions/:id` - Get permission by ID
-- `POST /permissions` - Create permission
-- `PATCH /permissions/:id` - Update permission
-- `DELETE /permissions/:id` - Delete permission
-
-### Policies
-
-- `GET /policies` - Get all policies
-- `GET /policies/:id` - Get policy by ID
-- `GET /policies/permission/:permissionId` - Get policies by permission ID
-- `POST /policies` - Create policy
-- `PATCH /policies/:id` - Update policy
-- `DELETE /policies/:id` - Delete policy
-
-### Authorization
-
-- `POST /authorization/check` - Check if user has permission to access a resource
-
-## Usage Example
-
-### Authentication
-
-```typescript
-// Login
-const response = await fetch("http://localhost:3000/auth/login", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify({
-    username: "admin",
-    password: "Admin123!",
-  }),
-});
-
-const { access_token } = await response.json();
-```
-
-### Authorization Check
-
-```typescript
-// Check if user has permission to view stocks
-const response = await fetch("http://localhost:3000/authorization/check", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${access_token}`,
-  },
-  body: JSON.stringify({
-    userId: "user-uuid",
-    permissionName: "view_stocks",
-    resource: "stocks",
-    context: {
-      category: "electronics",
-    },
-  }),
-});
-
-const result = await response.json();
-// result: { granted: true, scope: 'all' }
-// or for own resources: { granted: true, scope: 'own', filter: 'createdById = :userId' }
-```
-
-## Database Schema
-
-The API uses the following database schema:
-
-- `users` - User information
-- `roles` - Role definitions
-- `permissions` - Permission definitions
-- `user_roles` - Junction table for user-role relationships
-- `role_permissions` - Junction table for role-permission relationships
-- `policies` - Policy definitions with conditions
-
-## License
-
-[MIT](LICENSE)
+Bu modül, sistemde gerçekleşen olayları izlemek, bu olaylara tepki vermek ve dış sistemlerle entegrasyon sağlamak için güçlü bir altyapı sunuyor. Özellikle mikroservis mimarisinde veya karmaşık iş akışlarının olduğu sistemlerde çok faydalı olabilir.

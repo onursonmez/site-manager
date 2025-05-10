@@ -991,6 +991,110 @@
             "description": "Delete a collection"
           },
           "response": []
+        },
+        {
+          "name": "Add Field to Collection",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"description\",\n  \"type\": \"TEXTAREA\",\n  \"description\": \"Detailed description\",\n  \"isRequired\": false,\n  \"isUnique\": false,\n  \"isVisible\": true,\n  \"sortOrder\": 2,\n  \"validation\": {\n    \"minLength\": 10,\n    \"maxLength\": 1000\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/collections/:id/fields",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "collections", ":id", "fields"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Collection ID"
+                }
+              ]
+            },
+            "description": "Add a new field to an existing collection"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Field in Collection",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated field description\",\n  \"isRequired\": true,\n  \"validation\": {\n    \"minLength\": 5,\n    \"maxLength\": 500\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/v1/collections/:id/fields/:fieldId",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "collections", ":id", "fields", ":fieldId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Collection ID"
+                },
+                {
+                  "key": "fieldId",
+                  "value": "",
+                  "description": "Field ID"
+                }
+              ]
+            },
+            "description": "Update an existing field in a collection"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Field from Collection",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/collections/:id/fields/:fieldId",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "collections", ":id", "fields", ":fieldId"],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "",
+                  "description": "Collection ID"
+                },
+                {
+                  "key": "fieldId",
+                  "value": "",
+                  "description": "Field ID"
+                }
+              ]
+            },
+            "description": "Remove a field from a collection"
+          },
+          "response": []
         }
       ],
       "description": "Collection management endpoints"
