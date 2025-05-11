@@ -1,24 +1,16 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsOptional,
-  IsUUID,
-  IsBoolean,
-} from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty, IsString, IsOptional, IsUUID, IsBoolean } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateChannelSettingsDto {
-  @ApiProperty({ example: 'channel-uuid' })
-  @IsNotEmpty()
-  @IsUUID()
+  @ApiProperty({ example: "channel-uuid" })
   channelId: string;
 
-  @ApiProperty({ example: 'theme' })
+  @ApiProperty({ example: "theme" })
   @IsNotEmpty()
   @IsString()
   key: string;
 
-  @ApiProperty({ example: { primary: '#000000' } })
+  @ApiProperty({ example: { primary: "#000000" } })
   @IsNotEmpty()
   value: any;
 
@@ -27,7 +19,7 @@ export class CreateChannelSettingsDto {
   @IsBoolean()
   isInherited?: boolean;
 
-  @ApiProperty({ example: 'parent-channel-uuid', required: false })
+  @ApiProperty({ example: "parent-channel-uuid", required: false })
   @IsOptional()
   @IsUUID()
   inheritedFromId?: string;

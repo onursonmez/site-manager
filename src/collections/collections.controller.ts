@@ -4,6 +4,7 @@ import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 import { CollectionService } from "./services/collection.service";
 import { CreateCollectionDto } from "./dto/create-collection.dto";
 import { CreateFieldDto } from "./dto/create-field.dto";
+import { UpdateCollectionDto } from "./dto/update-collection.dto";
 import { Request } from "express";
 
 @ApiTags("collections")
@@ -39,6 +40,12 @@ export class CollectionsController {
   @Version("1")
   remove(@Param("id") id: string) {
     return this.collectionService.remove(id);
+  }
+
+  @Patch(":id")
+  @Version("1")
+  update(@Param("id") id: string, @Body() updateCollectionDto: UpdateCollectionDto) {
+    return this.collectionService.update(id, updateCollectionDto);
   }
 
   @Post(":id/fields")

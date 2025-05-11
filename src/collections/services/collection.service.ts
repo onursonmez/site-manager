@@ -5,6 +5,7 @@ import { Collection } from "../entities/collection.entity";
 import { Field } from "../entities/field.entity";
 import { CreateCollectionDto } from "../dto/create-collection.dto";
 import { CreateFieldDto } from "../dto/create-field.dto";
+import { UpdateCollectionDto } from "../dto/update-collection.dto";
 import { SchemaService } from "./schema.service";
 import { FieldFactory } from "../factories/field.factory";
 import { LoggingService } from "../../logging/logging.service";
@@ -230,26 +231,10 @@ export class CollectionService {
       // Commit the transaction
       await queryRunner.commitTransaction();
 
-      // Log the operation
-      await this.loggingService.logRequest({
-        method: "POST",
-        url: `Collection/${collection.id}/fields`,
-        statusCode: 201,
-        body: { field: createFieldDto },
-      });
-
       return savedField;
     } catch (error) {
       // Rollback the transaction in case of error
       await queryRunner.rollbackTransaction();
-
-      // Log the error
-      await this.loggingService.logRequest({
-        method: "POST",
-        url: `Collection/${collectionId}/fields`,
-        statusCode: 500,
-        body: { error: error.message },
-      });
 
       throw error;
     } finally {
@@ -323,26 +308,10 @@ export class CollectionService {
       // Commit the transaction
       await queryRunner.commitTransaction();
 
-      // Log the operation
-      await this.loggingService.logRequest({
-        method: "PATCH",
-        url: `Collection/${collection.id}/fields/${fieldId}`,
-        statusCode: 200,
-        body: { field: updateFieldDto },
-      });
-
       return savedField;
     } catch (error) {
       // Rollback the transaction in case of error
       await queryRunner.rollbackTransaction();
-
-      // Log the error
-      await this.loggingService.logRequest({
-        method: "PATCH",
-        url: `Collection/${collectionId}/fields/${fieldId}`,
-        statusCode: 500,
-        body: { error: error.message },
-      });
 
       throw error;
     } finally {
@@ -379,26 +348,59 @@ export class CollectionService {
 
       // Commit the transaction
       await queryRunner.commitTransaction();
-
-      // Log the operation
-      await this.loggingService.logRequest({
-        method: "DELETE",
-        url: `Collection/${collection.id}/fields/${fieldId}`,
-        statusCode: 200,
-        body: { fieldId },
-      });
     } catch (error) {
       // Rollback the transaction in case of error
       await queryRunner.rollbackTransaction();
 
-      // Log the error
-      await this.loggingService.logRequest({
-        method: "DELETE",
-        url: `Collection/${collectionId}/fields/${fieldId}`,
-        statusCode: 500,
-        body: { error: error.message },
-      });
+      throw error;
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
+    }
+  }
 
+  /**
+   * Updates a collection
+   * @param id The ID of the collection to update
+   * @param updateCollectionDto The updated collection data
+   * @returns The updated collection
+   */
+  async update(id: string, updateCollectionDto: Partial<CreateCollectionDto>): Promise<Collection> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Find the collection
+      const collection = await this.findOne(id);
+
+      // Check if name is being updated and if it already exists
+      if (updateCollectionDto.name && updateCollectionDto.name !== collection.name) {
+        const existingCollection = await this.collectionRepository.findOne({
+          where: [{ name: updateCollectionDto.name }],
+        });
+
+        if (existingCollection) {
+          throw new ConflictException(`Collection "${updateCollectionDto.name}" already exists`);
+        }
+
+        // If renaming, we need to rename the table
+        const newTableName = this.schemaService.generateTableName(updateCollectionDto.name);
+        await queryRunner.query(`ALTER TABLE "${collection.tableName}" RENAME TO "${newTableName}"`);
+        collection.tableName = newTableName;
+      }
+
+      // Update collection entity
+      Object.assign(collection, updateCollectionDto);
+      const savedCollection = await queryRunner.manager.save(collection);
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+
+      return savedCollection;
+    } catch (error) {
+      // Rollback the transaction in case of error
+      await queryRunner.rollbackTransaction();
       throw error;
     } finally {
       // Release the query runner
