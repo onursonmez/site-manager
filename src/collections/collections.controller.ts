@@ -24,6 +24,12 @@ export class CollectionsController {
     return this.collectionService.create(createCollectionDto, userId);
   }
 
+  @Patch(":id")
+  @Version("1")
+  update(@Param("id") id: string, @Body() updateCollectionDto: UpdateCollectionDto) {
+    return this.collectionService.update(id, updateCollectionDto);
+  }
+
   @Get()
   @Version("1")
   findAll() {
@@ -40,12 +46,6 @@ export class CollectionsController {
   @Version("1")
   remove(@Param("id") id: string) {
     return this.collectionService.remove(id);
-  }
-
-  @Patch(":id")
-  @Version("1")
-  update(@Param("id") id: string, @Body() updateCollectionDto: UpdateCollectionDto) {
-    return this.collectionService.update(id, updateCollectionDto);
   }
 
   @Post(":id/fields")
