@@ -1,16 +1,12 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { AssignRoleDto } from './dto/assign-role.dto';
-import { Role } from '../roles/entities/role.entity';
-import * as bcrypt from 'bcrypt';
+import { Injectable, ConflictException, NotFoundException } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { User } from "./entities/user.entity";
+import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
+import { AssignRoleDto } from "./dto/assign-role.dto";
+import { Role } from "../roles/entities/role.entity";
+import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class UsersService {
@@ -18,7 +14,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     @InjectRepository(Role)
-    private readonly rolesRepository: Repository<Role>,
+    private readonly rolesRepository: Repository<Role>
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -30,9 +26,7 @@ export class UsersService {
     });
 
     if (existingUser) {
-      throw new ConflictException(
-        'A user with this username or email already exists',
-      );
+      throw new ConflictException("A user with this username or email already exists");
     }
 
     // Hash the password
@@ -60,10 +54,10 @@ export class UsersService {
     return user;
   }
 
-  async findByUsername(username: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ where: { username } });
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.usersRepository.findOne({ where: { email } });
     if (!user) {
-      throw new NotFoundException(`User with username "${username}" not found`);
+      throw new NotFoundException(`User with email "${email}" not found`);
     }
     return user;
   }
@@ -93,7 +87,7 @@ export class UsersService {
     // Find all roles
     const roles = await this.rolesRepository.findByIds(roleIds);
     if (roles.length !== roleIds.length) {
-      throw new NotFoundException('One or more roles not found');
+      throw new NotFoundException("One or more roles not found");
     }
 
     // Assign roles to user
